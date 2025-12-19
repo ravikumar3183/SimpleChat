@@ -3,27 +3,29 @@ package com.example.simplechat
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.simplechat.ui.screens.AiChatScreen
 import com.example.simplechat.ui.screens.ChatScreen
+import com.example.simplechat.ui.screens.CreateGroupScreen
+import com.example.simplechat.ui.screens.GroupChatScreen
 import com.example.simplechat.ui.screens.LoginScreen
 import com.example.simplechat.ui.screens.SignUpScreen
 import com.example.simplechat.ui.screens.UserListScreen
-import com.example.simplechat.ui.theme.SimpleChatTheme // Make sure this exists, or use MaterialTheme directly
 import com.example.simplechat.viewmodel.AuthViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // A simple theme wrapper
-            androidx.compose.material3.MaterialTheme {
+            MaterialTheme {
                 AppNavigation()
             }
         }
@@ -37,7 +39,8 @@ fun AppNavigation() {
     val startDestination = if (auth.currentUser != null) "userList" else "login"
 
     NavHost(navController = navController, startDestination = startDestination) {
-        // ... (login and signup remain the same) ...
+
+        // --- 1. LOGIN ---
         composable("login") {
             LoginScreen(
                 onNavigateToSignup = { navController.navigate("signup") },
@@ -49,6 +52,7 @@ fun AppNavigation() {
             )
         }
 
+        // --- 2. SIGNUP ---
         composable("signup") {
             SignUpScreen(
                 onNavigateToLogin = { navController.popBackStack() },
@@ -60,13 +64,23 @@ fun AppNavigation() {
             )
         }
 
-        // --- UPDATED USER LIST NAVIGATION ---
+        // --- 3. USER LIST (HOME) ---
         composable("userList") {
+            // We get AuthViewModel here just to handle Logout logic
             val authViewModel: AuthViewModel = viewModel()
+
             UserListScreen(
                 onUserClick = { userId, chatName ->
-                    // We are now passing the NAME in the URL, not the email
                     navController.navigate("chat/$userId/$chatName")
+                },
+                onGroupClick = { groupId, groupName ->
+                    navController.navigate("group_chat/$groupId/$groupName")
+                },
+                onCreateGroupClick = {
+                    navController.navigate("create_group")
+                },
+                onAiChatClick = {
+                    navController.navigate("ai_chat")
                 },
                 onLogout = {
                     authViewModel.logout()
@@ -74,12 +88,21 @@ fun AppNavigation() {
                         popUpTo("userList") { inclusive = true }
                     }
                 }
+                // Note: We do NOT pass userViewModel or groupViewModel here.
+                // The screen creates them automatically via defaults.
             )
         }
 
-        // --- UPDATED CHAT NAVIGATION ---
+        // --- 4. AI CHAT SCREEN ---
+        composable("ai_chat") {
+            AiChatScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // --- 5. ONE-ON-ONE CHAT ---
         composable(
-            route = "chat/{userId}/{chatName}", // Changed parameter name to chatName
+            route = "chat/{userId}/{chatName}",
             arguments = listOf(
                 navArgument("userId") { type = NavType.StringType },
                 navArgument("chatName") { type = NavType.StringType }
@@ -88,12 +111,37 @@ fun AppNavigation() {
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
             val chatName = backStackEntry.arguments?.getString("chatName") ?: ""
 
-            // We pass 'chatName' to the screen.
-            // Note: If your ChatScreen parameter is still named 'receiverEmail',
-            // that is fine! It just uses this string for the Top Bar Title.
             ChatScreen(
                 receiverId = userId,
-                receiverEmail = chatName, // We pass the name here to display it as the title
+                receiverEmail = chatName, // Display Name
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // --- 6. CREATE GROUP ---
+        composable("create_group") {
+            CreateGroupScreen(
+                onBack = { navController.popBackStack() },
+                onGroupCreated = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // --- 7. GROUP CHAT ---
+        composable(
+            route = "group_chat/{groupId}/{groupName}",
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType },
+                navArgument("groupName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+            val groupName = backStackEntry.arguments?.getString("groupName") ?: ""
+
+            GroupChatScreen(
+                groupId = groupId,
+                groupName = groupName,
                 onBack = { navController.popBackStack() }
             )
         }

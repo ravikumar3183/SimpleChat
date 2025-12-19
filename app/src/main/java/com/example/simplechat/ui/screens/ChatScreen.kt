@@ -1,103 +1,3 @@
-//package com.example.simplechat.ui.screens
-//
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.layout.*
-//import androidx.compose.foundation.lazy.LazyColumn
-//import androidx.compose.foundation.lazy.items
-//import androidx.compose.foundation.lazy.rememberLazyListState
-//import androidx.compose.foundation.shape.RoundedCornerShape
-//import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.automirrored.filled.Send
-//import androidx.compose.material3.*
-//import androidx.compose.runtime.*
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.unit.dp
-//import androidx.lifecycle.viewmodel.compose.viewModel
-//import com.example.simplechat.model.Message
-//import com.example.simplechat.viewmodel.ChatViewModel
-//
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun ChatScreen(
-//    receiverId: String,
-//    receiverEmail: String,
-//    onBack: () -> Unit,
-//    viewModel: ChatViewModel = viewModel()
-//) {
-//    val currentUserId = viewModel.getCurrentUser() ?: return
-//    val conversationId = remember { viewModel.getConversationId(currentUserId, receiverId) }
-//    val messages by viewModel.messages.collectAsState()
-//    var text by remember { mutableStateOf("") }
-//
-//    // Auto-scroll to bottom
-//    val listState = rememberLazyListState()
-//    LaunchedEffect(messages) {
-//        if (messages.isNotEmpty()) {
-//            listState.animateScrollToItem(messages.size - 1)
-//        }
-//    }
-//
-//    LaunchedEffect(Unit) {
-//        viewModel.loadMessages(conversationId)
-//    }
-//
-//    Scaffold(
-//        topBar = { TopAppBar(title = { Text(receiverEmail) }) }
-//    ) { padding ->
-//        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-//            LazyColumn(
-//                modifier = Modifier.weight(1f).padding(8.dp),
-//                state = listState
-//            ) {
-//                items(messages) { message ->
-//                    MessageBubble(message = message, isCurrentUser = message.senderId == currentUserId)
-//                }
-//            }
-//
-//            Row(
-//                modifier = Modifier.padding(8.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                OutlinedTextField(
-//                    value = text,
-//                    onValueChange = { text = it },
-//                    modifier = Modifier.weight(1f),
-//                    placeholder = { Text("Type a message...") }
-//                )
-//                IconButton(onClick = {
-//                    viewModel.sendMessage(conversationId, text)
-//                    text = ""
-//                }) {
-//                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//@Composable
-//fun MessageBubble(message: Message, isCurrentUser: Boolean) {
-//    Box(
-//        modifier = Modifier.fillMaxWidth(),
-//        contentAlignment = if (isCurrentUser) Alignment.CenterEnd else Alignment.CenterStart
-//    ) {
-//        Surface(
-//            color = if (isCurrentUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer,
-//            shape = RoundedCornerShape(8.dp),
-//            modifier = Modifier.padding(4.dp)
-//        ) {
-//            Text(
-//                text = message.text,
-//                modifier = Modifier.padding(8.dp),
-//                color = if (isCurrentUser) Color.White else Color.Black
-//            )
-//        }
-//    }
-//}
-
-
 package com.example.simplechat.ui.screens
 
 import androidx.compose.foundation.background
@@ -118,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplechat.model.Message
 import com.example.simplechat.viewmodel.ChatViewModel
+import com.example.simplechat.formatTimestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -259,10 +160,4 @@ fun MessageBubble(message: Message, isCurrentUser: Boolean) {
             }
         }
     }
-}
-
-// --- HELPER FUNCTION ---
-fun formatTimestamp(timestamp: Long): String {
-    val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
-    return sdf.format(Date(timestamp))
 }

@@ -1,3 +1,4 @@
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,7 +16,26 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+        // --- NEW CODE STARTS HERE ---
+        // 1. Create a Properties object
+        val properties = Properties()
 
+        // 2. Locate the local.properties file in the project root
+        val localPropertiesFile = rootProject.file("local.properties")
+
+        // 3. Load the file if it exists
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+
+        // 4. Extract the key (default to empty string if not found)
+        val apiKey = properties.getProperty("GEMINI_API_KEY") ?: ""
+
+        // 5. Inject it into BuildConfig (Carefully formatted quotes)
+        buildConfigField("String", "GEMINI_API_KEY", "\"$apiKey\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -37,6 +57,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -80,4 +101,13 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Google AI SDK for Android
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
+    // Firebase Storage
+    implementation("com.google.firebase:firebase-storage")
+
+// Coil (For loading images in Compose)
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
